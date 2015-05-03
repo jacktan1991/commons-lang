@@ -375,4 +375,20 @@ public class JsonToStringStyleTest {
          */
         Person person;
     }
+    
+    static class FakeData {
+    	String innerStr = "{'a'-'A'}";
+    	
+    	public String toString(){
+    		return innerStr;
+    	}
+    }
+    
+    @Test
+    public void testFakeString () {
+    	final FakeData data = new FakeData();
+    	
+    	assertEquals("{\"fake\":\"" + data.toString() +"\"}", new ToStringBuilder(base).append("fake", data)
+                 .toString());
+    }
 }
