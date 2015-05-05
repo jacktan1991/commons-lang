@@ -3,101 +3,91 @@ package org.apache.commons.lang3.builder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.annotation.ExcludeFields;
+import org.apache.commons.lang3.builder.annotation.ToString;
 
 public class AnnotationToStringBuilder extends ReflectionToStringBuilder {
     
-    public static final String[] EMPTY_EXCLUDE_FIELD_NAMES = new String[]{};
-    private static Map<Class<?>, ExcludeFields> classExcludeFields;
+    private static Map<Class<?>, ToString> classToStringConf;
+    private static Map<Object, AnnotationToStringBuilder> buffers;
     
     static {
-        classExcludeFields = new HashMap<Class<?>, ExcludeFields>();
+        classToStringConf = new HashMap<Class<?>, ToString>();
+        buffers = new HashMap<Object, AnnotationToStringBuilder>();
     }
     
-    {
-        initExcludeFieldNames();
+    static ToString getToStringConf(Class<?> annotatedClazz) {
+        if (annotatedClazz == null) {
+            throw new IllegalArgumentException("annotatedClazz should not be null.");
+        }
+        if (classToStringConf.containsKey(annotatedClazz)){
+            return classToStringConf.get(annotatedClazz);
+        }
+        
+        ToString toStringConf = annotatedClazz.getAnnotation(ToString.class);
+        classToStringConf.put(annotatedClazz, toStringConf);
+        
+        return toStringConf;
     }
     
-    static ExcludeFields getExcludes(Class<?> annotatedClazz){
+    private void init() {
+        Class<?> thisClazz = getObject().getClass();
+        ToString toStringConf = getToStringConf(thisClazz);
         
-        if (classExcludeFields.containsKey(annotatedClazz)){
-            return classExcludeFields.get(annotatedClazz);
+        if (toStringConf == null) {
+            excludeFieldNames = ArrayUtils.EMPTY_STRING_ARRAY;
+            return;
         }
+        super.setExcludeFieldNames(toStringConf.excludes());
+        super.setAppendStatics(toStringConf.outputStatics());
+        super.setAppendTransients(toStringConf.outputTransients());
+        super.setUpToClass(toStringConf.upToClass());
         
-        ExcludeFields excludeFields_a = null;
-        
-        try {
-            excludeFields_a = annotatedClazz.getAnnotation(ExcludeFields.class);
-        } catch (Exception ex) {
-            excludeFields_a = null;
-        }
-        
-        classExcludeFields.put(annotatedClazz, excludeFields_a);
-        
-        return excludeFields_a;
+    }
+
+    /**
+    * @throws IllegalArgumentException
+    *             if the Object passed in is <code>null</code>
+    */
+    private AnnotationToStringBuilder(Object object) {
+        super(object, getToStringConf(object.getClass()) == null ? null : getToStringConf(object.getClass()).style().getStyle());
+        init();
     }
     
-    private void initExcludeFieldNames() {
-        if (isPrimType(getObject())) {
-            excludeFieldNames = EMPTY_EXCLUDE_FIELD_NAMES;
-        }
-        if (excludeFieldNames == null) {
-            Class<?> thisClazz = getObject().getClass();
-            ExcludeFields classExcludes = getExcludes(thisClazz);
-            if (classExcludes == null) {
-                excludeFieldNames = EMPTY_EXCLUDE_FIELD_NAMES;
-            } else {
-                excludeFieldNames = classExcludes.value();
-            }
-        }
-    }
-    
-    private static boolean isPrimType(Object obj) {
+    public static AnnotationToStringBuilder getInstance(final Object obj) {
         if (obj == null) {
-            return true;
+            throw new IllegalArgumentException("object should not be null.");
         }
-        
-        if (obj instanceof String || obj instanceof Number || obj instanceof Boolean || obj instanceof Character) {
-            return true;
+        AnnotationToStringBuilder stringBuilder = buffers.get(obj);
+        if (stringBuilder == null) {
+            stringBuilder = new AnnotationToStringBuilder(obj);
         }
-        
-        return false;
-    }
-
-    public AnnotationToStringBuilder(Object object) {
-        super(object);
-        // TODO Auto-generated constructor stub
-    }
-
-    public AnnotationToStringBuilder(Object object, StringBuffer buffer) {
-        super(object, null, buffer);
-        // TODO Auto-generated constructor stub
-    }
-
-    public <T> AnnotationToStringBuilder(T object, StringBuffer buffer, Class<? super T> reflectUpToClass,
-            boolean outputTransients, boolean outputStatics) {
-        super(object, null, buffer, reflectUpToClass, outputTransients,
-                outputStatics);
-        // TODO Auto-generated constructor stub
+        return stringBuilder;
     }
     
-    public static <T> String annotatedToString(
-        final T object,
-        final ToStringStyle style,
-        final boolean outputTransients,
-        final Class<? super T> reflectUpToClass) {
-        return null;
-    }
-    
-    public static <T> String toString(
-            final T object, final ToStringStyle style, final boolean outputTransients,
-            final boolean outputStatics, final Class<? super T> reflectUpToClass) {
-        return null;
+    public static String toString(final Object object) {
+        return new AnnotationToStringBuilder(object).toString();
     }
     
     @Override
     public AnnotationToStringBuilder setExcludeFieldNames(String... excludeFieldNamesParam) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("All exclude field names settings delegated to annotations.");
+    }
+    
+    @Override
+    public void setAppendStatics(boolean appendStatics) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("AppendStatics settings delegated to annotations.");
+    }
+    
+    @Override
+    public void setAppendTransients(boolean appendStatics) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("AppendTransients settings delegated to annotations.");
+    }
+    
+    @Override
+    public void setUpToClass(Class<?> clazz) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("UpToClass settings delegated to annotations.");
     }
         
     @Override
