@@ -11,12 +11,17 @@ public class AnnotationToStringBuilderTest {
     public void testSetExcludeFieldNames() {
         new AnnotationToStringBuilder(null).setExcludeFieldNames("");
     }
-
+    
     @Test
-    public void testGetAnnotatedExclusion() {
-        assertArrayEquals(new String[]{"excluded_f"}, AnnotationToStringBuilder.getAnnotatedExclusion(Address.class));
-        assertArrayEquals(AnnotationToStringBuilder.EMPTY_EXCLUDE_FIELD_NAMES, AnnotationToStringBuilder.getAnnotatedExclusion(Person.class));
-        assertArrayEquals(AnnotationToStringBuilder.EMPTY_EXCLUDE_FIELD_NAMES, AnnotationToStringBuilder.getAnnotatedExclusion(NoAnnotatedClass.class));
+    public void testGetExcludes() {
+        assertNull(AnnotationToStringBuilder.getExcludes(NoAnnotatedClass.class));
+        
+        ExcludeFields anno_excludes = AnnotationToStringBuilder.getExcludes(Person.class);
+        assertNotNull(anno_excludes);
+        assertArrayEquals(AnnotationToStringBuilder.EMPTY_EXCLUDE_FIELD_NAMES, anno_excludes.value());
+        
+        anno_excludes = AnnotationToStringBuilder.getExcludes(Address.class);
+        assertArrayEquals(new String[]{"excluded_f"}, anno_excludes.value());
     }
     
     @ExcludeFields
