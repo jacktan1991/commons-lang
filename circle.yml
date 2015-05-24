@@ -1,0 +1,22 @@
+general:
+  branches:
+    ignore:
+      - gh-pages
+
+machine:
+  timezone:
+    Asia/Shanghai
+  java:
+    version:
+      oraclejdk8
+      
+dependencies:
+  pre:
+    - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+  
+test:
+  override:
+    - mvn test -B
+  post:
+    - mvn clean cobertura:cobertura coveralls:report
+    - cp -R ./XXXXXXXX/target $CIRCLE_ARTIFACTS
