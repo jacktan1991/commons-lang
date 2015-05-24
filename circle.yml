@@ -4,8 +4,6 @@ general:
       - gh-pages
 
 machine:
-  timezone:
-    Asia/Shanghai
   java:
     version:
       oraclejdk8
