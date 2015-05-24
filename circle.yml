@@ -17,4 +17,4 @@ test:
     - mvn test -B
   post:
     - mvn clean cobertura:cobertura coveralls:report
-    - cp -R ./XXXXXXXX/target $CIRCLE_ARTIFACTS
+    - cp -R ./target/site $CIRCLE_ARTIFACTS
